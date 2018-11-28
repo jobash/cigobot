@@ -1,0 +1,12 @@
+{
+  "name": "cigobot",
+  "version": "1.0.0",
+  "description": "A bot for cigos",
+  "main": "bot.js",
+  "author": "Johnny",
+  "dependencies": {
+    "discord.io": "github:woor/discord.io#gateway_v6",
+    "fs": "0.0.1-security",
+    "winston": "^3.1.0"
+  }
+}

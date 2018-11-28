@@ -1,0 +1,6 @@
+.gradle
+node_modules
+.vscode
+auth.json
+audio/*
+ffmpeg-4.0.2-win64-static/doc

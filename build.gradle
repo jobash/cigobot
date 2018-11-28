@@ -1,0 +1,29 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+plugins {
+    id "com.moowork.node" version "1.2.0"
+}
+
+wrapper {
+    gradleVersion = '4.10'
+}
+
+node {
+	version = '10.13.0'
+	npmVersion = '6.4.1'
+	download = true
+}
+
+task run(type: Exec) {
+    commandLine 'node', 'bot.js'
+}
+
+task setup(dependsOn: 'npmInstall') {}
+
+task clean(type: Delete, dependsOn: npm_cache_verify) {
+    delete "node_modules"
+}
