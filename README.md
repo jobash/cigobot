@@ -1,0 +1,2 @@
+# cigobot
+Discord bot
