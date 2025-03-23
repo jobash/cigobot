@@ -6,9 +6,11 @@ import giphy_client
 import random
 import finnhub
 import requests
+import openai
 
+intents = discord.Intents.default()
+intents.message_content = True
 from giphy_client.rest import ApiException
-from pprint import pprint
 from dotenv import load_dotenv
 from discord.ext import commands
 
@@ -20,8 +22,10 @@ logging.basicConfig(level=logging.INFO)
 token = os.getenv('DISCORD_TOKEN')
 finnhub_client = finnhub.Client(api_key=os.getenv('FINNHUB'))
 giphy_token = os.getenv('GIPHY')
+openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.organization = os.getenv("OPENAI_ORG")
 
-bot = commands.Bot(command_prefix='!')
+bot = commands.Bot(command_prefix='!', intents=intents)
 api_instance = giphy_client.DefaultApi()
 
 @bot.command(name="gif", brief="Random gif", help="Random gif", usage="dance", case_insensitive=True)
@@ -35,6 +39,42 @@ async def gif(ctx, *args):
         await ctx.send(gif[0].url)
 
     except ApiException as e:
+        await ctx.send(e.reason)
+        logging.error(e)
+
+@bot.command(name="cigo", brief="Ask Cigo bot", help="Ask Cigo bot", usage="What is Ronaldos catchphrase", case_insensitive=True)
+async def cigo(ctx, *args):
+    query = ' '.join(args)
+    try:
+        await ctx.typing()
+        response = requests.post("https://api.openai.com/v1/chat/completions", json={
+            "model": "gpt-3.5-turbo",
+            "messages": [{"role": "assistant", "content": query}],
+            "max_tokens": 2000,
+            "temperature": 1
+        }, headers={"Authorization": "Bearer " + openai.api_key, "Content-Type": "application/json"})
+
+        await ctx.send(response.json()["choices"][0]["message"]["content"], mention_author = True)
+
+    except openai.InvalidRequestError as e:
+        await ctx.send(e._message)
+        logging.error(e)
+
+@bot.command(name="image", brief="Generate an image", help="Generate an image", usage="A cat", case_insensitive=True)
+async def cigo(ctx, *args):
+    query = ' '.join(args)
+    try:
+        response = openai.Image.create(
+            prompt=query,
+            n=1,
+            size="256x256"
+        )
+        image_url = response['data'][0]['url']
+
+        await ctx.send(image_url)
+
+    except openai.InvalidRequestError as e:
+        await ctx.send(e._message)
         logging.error(e)
 
 @bot.command(name="stock", brief="Show price for stock", usage="GME", help="Shows current price for stock", case_insensitive=True)
@@ -63,8 +103,19 @@ async def avanza(ctx, *args):
         message = "The following stocks were found:\n" + ''.join(resultList)
         await ctx.send(message)
     except Exception as e:
+        await ctx.send(e.reason)
         logging.error(e)
 
+@bot.command(name="to", case_insensitive=True, hidden=True)
+async def to(ctx, *args):
+    query = ' '.join(args)
+    if query == None or query == "":
+        return
+    channel = discord.utils.get(ctx.guild.channels, name=query)
+    if channel == None:
+        return
+    user = ctx.author
+    await user.move_to(channel)
 
 
 @bot.command(name="play", brief="Play audio", usage="amg", help=getPlayHelpText(), case_insensitive=True)
