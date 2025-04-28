@@ -47,35 +47,22 @@ async def cigo(ctx, *args):
     query = ' '.join(args)
     try:
         await ctx.typing()
-        response = requests.post("https://api.openai.com/v1/chat/completions", json={
-            "model": "gpt-3.5-turbo",
-            "messages": [{"role": "assistant", "content": query}],
-            "max_tokens": 2000,
-            "temperature": 1
-        }, headers={"Authorization": "Bearer " + openai.api_key, "Content-Type": "application/json"})
+        response = requests.post("http://localhost:11434/api/generate", json={
+            "model": "gemma3:4b",
+            "prompt": query,
+            "stream": False,
+            "options": {
+               "temperature": 1,
+               "num_predict": 1000
+            }
+        })
 
-        await ctx.send(response.json()["choices"][0]["message"]["content"], mention_author = True)
-
-    except openai.InvalidRequestError as e:
-        await ctx.send(e._message)
-        logging.error(e)
-
-@bot.command(name="image", brief="Generate an image", help="Generate an image", usage="A cat", case_insensitive=True)
-async def cigo(ctx, *args):
-    query = ' '.join(args)
-    try:
-        response = openai.Image.create(
-            prompt=query,
-            n=1,
-            size="256x256"
-        )
-        image_url = response['data'][0]['url']
-
-        await ctx.send(image_url)
+        await ctx.send(response.json()["response"], mention_author = True)
 
     except openai.InvalidRequestError as e:
         await ctx.send(e._message)
         logging.error(e)
+
 
 @bot.command(name="stock", brief="Show price for stock", usage="GME", help="Shows current price for stock", case_insensitive=True)
 async def stock(ctx, *args):
