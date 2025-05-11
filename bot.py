@@ -1,5 +1,6 @@
 import os
 import logging
+import aiohttp
 import discord
 import asyncio
 import giphy_client
@@ -42,24 +43,29 @@ async def gif(ctx, *args):
         await ctx.send(e.reason)
         logging.error(e)
 
+async def post_data(url, data):
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json = data) as response:
+            return await response.json()
+
 @bot.command(name="cigo", brief="Ask Cigo bot", help="Ask Cigo bot", usage="What is Ronaldos catchphrase", case_insensitive=True)
 async def cigo(ctx, *args):
     query = ' '.join(args)
     try:
-        await ctx.typing()
-        response = requests.post("http://localhost:11434/api/generate", json={
-            "model": "gemma3:4b",
-            "prompt": query,
-            "stream": False,
-            "options": {
-               "temperature": 1,
-               "num_predict": 1000
-            }
-        })
+        async with ctx.typing():
+            response = await post_data("http://192.168.1.82:11434/api/generate", {
+                "model": "qwen3:0.6b",
+                "prompt": "/no_think" + query,
+                "stream": False,
+                "options": {
+                    "temperature": 1,
+                }
+            })
+            answer = response["response"].replace("<think>\n\n</think>\n\n", "")
+            await ctx.send(answer, mention_author = True)
 
-        await ctx.send(response.json()["response"], mention_author = True)
 
-    except openai.InvalidRequestError as e:
+    except Exception as e:
         await ctx.send(e._message)
         logging.error(e)
 
