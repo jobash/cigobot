@@ -55,7 +55,7 @@ async def cigo(ctx, *args):
         async with ctx.typing():
             response = await post_data("http://192.168.1.82:11434/api/generate", {
                 "model": "huihui_ai/qwen3-abliterated:0.6b",
-                "prompt": "/no_think" + query,
+                "prompt": " /no_think " + query,
                 "stream": False,
                 "options": {
                     "temperature": 1,
@@ -86,13 +86,20 @@ async def avanza(ctx, *args):
     query = ' '.join(args)
     resultList = []
     try:
-        response = requests.get('https://www.avanza.se/_cqbe/search/global-search/global-search-template?query=' + query)
-        resultGroups = response.json()['resultGroups']
-        for resultGroup in resultGroups:
-            if resultGroup['instrumentType'] == "STOCK":
-                hits = resultGroup['hits']
-                for hit in hits:
-                    resultList.append("{}: {} {}\n".format(hit['link']['linkDisplay'], hit['lastPrice'], hit['currency']))
+        response = await post_data('https://www.avanza.se/_api/search/filtered-search', {
+            "originPath": "/start",
+            "query": query,
+            "searchFilter": {
+                "types": ["STOCK"]
+            },
+            "pagination": {
+                "from": 0,
+                "size": 5
+            }
+        })
+        hits = response['hits']
+        for hit in hits:
+            resultList.append("{}: {} {}\n".format(hit['title'], hit['price']['last'], hit['price']['currency']))
         message = "The following stocks were found:\n" + ''.join(resultList)
         await ctx.send(message)
     except Exception as e:
