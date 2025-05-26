@@ -6,7 +6,6 @@ import asyncio
 import giphy_client
 import random
 import finnhub
-import requests
 import openai
 
 intents = discord.Intents.default()
@@ -55,15 +54,15 @@ async def cigo(ctx, *args):
         async with ctx.typing():
             response = await post_data("http://192.168.1.82:11434/api/generate", {
                 "model": "huihui_ai/qwen3-abliterated:0.6b",
-                "prompt": " /no_think " + query,
+                "prompt": " /no think " + query,
                 "stream": False,
                 "options": {
                     "temperature": 1,
                 }
             })
             answer = response["response"].replace("<think>\n\n</think>\n\n", "")
-            await ctx.send(answer, mention_author = True)
-
+            for ans in chunkstring(answer, 2000):
+                await ctx.send(ans, mention_author = True)
 
     except Exception as e:
         await ctx.send(e._message)
@@ -140,5 +139,8 @@ async def play(ctx, arg):
         await asyncio.sleep(1)
     vc.stop()
     await vc.disconnect()
+
+def chunkstring(string, length):
+    return (string[0+i:length+i] for i in range(0, len(string), length))
 
 bot.run(token)
