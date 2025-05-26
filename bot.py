@@ -61,7 +61,7 @@ async def cigo(ctx, *args):
                 }
             })
             answer = response["response"].replace("<think>\n\n</think>\n\n", "")
-            for ans in chunkstring(answer, 2000):
+            for ans in chunkstring(answer, 1500):
                 await ctx.send(ans, mention_author = True)
 
     except Exception as e:
