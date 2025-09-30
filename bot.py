@@ -53,7 +53,7 @@ async def cigo(ctx, *args):
     try:
         async with ctx.typing():
             response = await post_data("http://192.168.1.82:11434/api/generate", {
-                "model": "huihui_ai/qwen3-abliterated:0.6b",
+                "model": "gemma3:1b",
                 "prompt": " /no_think " + query,
                 "stream": False,
                 "options": {
